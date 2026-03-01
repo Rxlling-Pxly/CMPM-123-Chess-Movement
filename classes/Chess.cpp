@@ -43,8 +43,6 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
 void Chess::setUpBoard()
 {
     setNumberOfPlayers(2);
-    _gameOptions.rowX = 8;
-    _gameOptions.rowY = 8;
 
     _grid->initializeChessSquares(pieceSize, "boardsquare.png");
     FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
@@ -53,8 +51,8 @@ void Chess::setUpBoard()
 }
 
 void Chess::FENtoBoard(const std::string& fen) {
-    int rank = _grid->getHeight() - 1; // row/y
-    int file = 0; // col/x
+    int rank = 7; // row/y
+    int file = 0; // column/x
     for (char c : fen)
     {
         if (c == '/')
@@ -74,29 +72,15 @@ void Chess::FENtoBoard(const std::string& fen) {
             ChessPiece piece;
             switch(toupper(c))
             {
-                case 'P':
-                    piece = Pawn;
-                    break;
-                case 'N':
-                    piece = Knight;
-                    break;
-                case 'B':
-                    piece = Bishop;
-                    break;
-                case 'R':
-                    piece = Rook;
-                    break;
-                case 'Q':
-                    piece = Queen;
-                    break;
-                case 'K':
-                    piece = King;
-                    break;
+                case 'P':   piece = Pawn;     break;
+                case 'N':   piece = Knight;   break;
+                case 'B':   piece = Bishop;   break;
+                case 'R':   piece = Rook;     break;
+                case 'Q':   piece = Queen;    break;
+                case 'K':   piece = King;     break;
             }
 
-            int gameTag = isupper(c)
-                ? piece
-                : piece + 128;
+            int gameTag = isupper(c) ? piece : piece + 128;
 
             Bit *bit = PieceForPlayer(playerNumber, piece);
             bit->setGameTag(gameTag);
