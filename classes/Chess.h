@@ -55,13 +55,15 @@ public:
 private:
     Grid *_grid;
     std::array<Bitboard, 64> _knightMovesBitboardArray;
+    std::array<Bitboard, 64> _kingMovesBitboardArray;
     std::array<int, 128> _pieceNotationToBitboardLookup;
 
     int _currentPlayer;
     Bitboard _bitboards[E_NUM_BITBOARDS];
     std::vector<BitMove> _moves;
 
-    std::array<Bitboard, 64> generateKnightMoveBitboardArray();
+    std::array<Bitboard, 64> generateKnightMovesBitboardArray();
+    std::array<Bitboard, 64> generateKingMovesBitboardArray();
     std::array<int, 128> generatePieceNotationToBitboardLookup();
 
     void fenToBoard(const std::string &fen);
@@ -71,6 +73,7 @@ private:
     void generatePawnMoves(std::vector<BitMove> &moves, const Bitboard pawns, const Bitboard noPieces, const Bitboard opponentPieces);
     void addPawnBitboardMovesToList(std::vector<BitMove> &moves, const Bitboard bitboard, const int shift);
     void generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knights);
+    void generateKingMoves(std::vector<BitMove> &moves, const Bitboard king);
 
     char pieceNotation(int x, int y) const;
 

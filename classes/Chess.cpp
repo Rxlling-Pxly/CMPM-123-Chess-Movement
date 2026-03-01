@@ -10,13 +10,38 @@ Chess::Chess()
     _grid = new Grid(8, 8);
     _grid->initializeChessSquares(PIECE_SIZE, "boardsquare.png");
 
-    _knightMovesBitboardArray = generateKnightMoveBitboardArray();
+    _knightMovesBitboardArray = generateKnightMovesBitboardArray();
+    _kingMovesBitboardArray = generateKingMovesBitboardArray();
     _pieceNotationToBitboardLookup = generatePieceNotationToBitboardLookup();
 }
-std::array<Bitboard, 64> Chess::generateKnightMoveBitboardArray()
+std::array<Bitboard, 64> Chess::generateKnightMovesBitboardArray()
 {
     struct Offset { int dx; int dy; };
     static constexpr Offset offsets[] = { {1,2}, {2,1}, {2,-1}, {1,-2}, {-1,-2}, {-2,-1}, {-2,1}, {-1,2} };
+
+    std::array<Bitboard, 64> result;
+    for (int fromIndex = 0; fromIndex < 64; fromIndex++)
+    {
+        int fromRank = fromIndex / 8;
+        int fromFile = fromIndex % 8;
+
+        for (auto [df, dr] : offsets)
+        {
+            int toRank = fromRank + dr;
+            int toFile = fromFile + df;
+
+            if (toRank < 0 || toRank > 7 || toFile < 0 || toFile > 7) continue;
+
+            int toIndex = toRank * 8 + toFile;
+            result[fromIndex] |= 1ULL << toIndex;
+        }
+    }
+    return result;
+}
+std::array<Bitboard, 64> Chess::generateKingMovesBitboardArray()
+{
+    struct Offset { int dx; int dy; };
+    static constexpr Offset offsets[] = { {0,1}, {1,1}, {1,0}, {1,-1}, {0,-1}, {-1,-1}, {-1,0}, {-1,1} };
 
     std::array<Bitboard, 64> result;
     for (int fromIndex = 0; fromIndex < 64; fromIndex++)
@@ -149,9 +174,10 @@ std::vector<BitMove> Chess::generateMoves()
         }
     }
 
-    int indexOffset = _currentPlayer == WHITE ? WHITE_PAWNS : BLACK_PAWNS;
-    generatePawnMoves(result, _bitboards[WHITE_PAWNS + indexOffset], _bitboards[NO_PIECES], _bitboards[_currentPlayer == WHITE ? BLACK_PIECES : WHITE_PIECES]);
-    generateKnightMoves(result, _bitboards[WHITE_KNIGHTS + indexOffset]);
+    int offset = _currentPlayer == WHITE ? WHITE_PAWNS : BLACK_PAWNS;
+    generatePawnMoves(result, _bitboards[WHITE_PAWNS + offset], _bitboards[NO_PIECES], _bitboards[_currentPlayer == WHITE ? BLACK_PIECES : WHITE_PIECES]);
+    generateKnightMoves(result, _bitboards[WHITE_KNIGHTS + offset]);
+    generateKingMoves(result, _bitboards[WHITE_KING + offset]);
 
     return result;
 }
@@ -214,6 +240,16 @@ void Chess::generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knig
         _knightMovesBitboardArray[fromIndex].forEachBit([&](int toIndex)
         {
             moves.emplace_back(fromIndex, toIndex, Knight);
+        });
+    });
+}
+void Chess::generateKingMoves(std::vector<BitMove> &moves, const Bitboard king)
+{
+    king.forEachBit([&](int fromIndex)
+    {
+        _kingMovesBitboardArray[fromIndex].forEachBit([&](int toIndex)
+        {
+            moves.emplace_back(fromIndex, toIndex, King);
         });
     });
 }
