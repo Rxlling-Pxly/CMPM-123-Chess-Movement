@@ -1,10 +1,14 @@
 #pragma once
 
+#include <array>
+#include <vector>
 #include "Bitboard.h"
 #include "Game.h"
 #include "Grid.h"
 
 constexpr int PIECE_SIZE = 80;
+constexpr int WHITE = 0;
+constexpr int BLACK = 1;
 
 enum Bitboards
 {
@@ -24,7 +28,7 @@ enum Bitboards
     BLACK_PIECES,
     NO_PIECES,
     ALL_PIECES,
-    e_numBitboards
+    NUM_BITBOARDS
 };
 
 class Chess : public Game
@@ -50,13 +54,22 @@ public:
 
 private:
     Grid *_grid;
+    std::array<Bitboard, 64> _knightMoveBitboardArray;
 
-    Bitboard _knightMoveBitboardArray[64];
+    int _currentPlayer;
+    Bitboard _bitboards[NUM_BITBOARDS];
+    int _bitboardLookup[128];
+    std::vector<BitMove> _moves;
 
-    void generateKnightMoveBitboardArray();
+    std::array<Bitboard, 64> generateKnightMoveBitboardArray();
 
-    Bit* pieceForPlayer(const int playerNumber, ChessPiece piece);
-    Player* ownerAt(int x, int y) const;
-    void fenToBoard(const std::string& fen);
+    void fenToBoard(const std::string &fen);
+    Bit *pieceForPlayer(const int playerNumber, ChessPiece piece);
+
+    std::vector<BitMove> generateMoves();
+    void generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoard, Bitboard allPiecesBoard);
+
     char pieceNotation(int x, int y) const;
+
+    void bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
 };
