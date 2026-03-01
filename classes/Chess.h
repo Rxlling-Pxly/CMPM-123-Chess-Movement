@@ -28,16 +28,16 @@ enum Bitboards
     BLACK_PIECES,
     NO_PIECES,
     ALL_PIECES,
-    NUM_BITBOARDS
+    E_NUM_BITBOARDS
 };
 
 class Chess : public Game
 {
 public:
-    Grid *getGrid() override { return _grid; }
-
     Chess();
     ~Chess();
+
+    Grid *getGrid() override { return _grid; }
 
     void setUpBoard() override;
     void stopGame() override;
@@ -54,14 +54,15 @@ public:
 
 private:
     Grid *_grid;
-    std::array<Bitboard, 64> _knightMoveBitboardArray;
+    std::array<Bitboard, 64> _knightMovesBitboardArray;
+    std::array<int, 128> _pieceNotationToBitboardLookup;
 
     int _currentPlayer;
-    Bitboard _bitboards[NUM_BITBOARDS];
-    int _bitboardLookup[128];
+    Bitboard _bitboards[E_NUM_BITBOARDS];
     std::vector<BitMove> _moves;
 
     std::array<Bitboard, 64> generateKnightMoveBitboardArray();
+    std::array<int, 128> generatePieceNotationToBitboardLookup();
 
     void fenToBoard(const std::string &fen);
     Bit *pieceForPlayer(const int playerNumber, ChessPiece piece);

@@ -10,21 +10,8 @@ Chess::Chess()
     _grid = new Grid(8, 8);
     _grid->initializeChessSquares(PIECE_SIZE, "boardsquare.png");
 
-    _knightMoveBitboardArray = generateKnightMoveBitboardArray();
-
-    _bitboardLookup['P'] = WHITE_PAWNS;
-    _bitboardLookup['N'] = WHITE_KNIGHTS;
-    _bitboardLookup['B'] = WHITE_BISHOPS;
-    _bitboardLookup['R'] = WHITE_ROOKS;
-    _bitboardLookup['Q'] = WHITE_QUEENS;
-    _bitboardLookup['K'] = WHITE_KING;
-    _bitboardLookup['p'] = BLACK_PAWNS;
-    _bitboardLookup['n'] = BLACK_KNIGHTS;
-    _bitboardLookup['b'] = BLACK_BISHOPS;
-    _bitboardLookup['r'] = BLACK_ROOKS;
-    _bitboardLookup['q'] = BLACK_QUEENS;
-    _bitboardLookup['k'] = BLACK_KING;
-    _bitboardLookup['0'] = NO_PIECES;
+    _knightMovesBitboardArray = generateKnightMoveBitboardArray();
+    _pieceNotationToBitboardLookup = generatePieceNotationToBitboardLookup();
 }
 std::array<Bitboard, 64> Chess::generateKnightMoveBitboardArray()
 {
@@ -48,6 +35,24 @@ std::array<Bitboard, 64> Chess::generateKnightMoveBitboardArray()
             result[fromIndex] |= 1ULL << toIndex;
         }
     }
+    return result;
+}
+std::array<int, 128> Chess::generatePieceNotationToBitboardLookup()
+{
+    std::array<int, 128> result;
+    result['P'] = WHITE_PAWNS;
+    result['N'] = WHITE_KNIGHTS;
+    result['B'] = WHITE_BISHOPS;
+    result['R'] = WHITE_ROOKS;
+    result['Q'] = WHITE_QUEENS;
+    result['K'] = WHITE_KING;
+    result['p'] = BLACK_PAWNS;
+    result['n'] = BLACK_KNIGHTS;
+    result['b'] = BLACK_BISHOPS;
+    result['r'] = BLACK_ROOKS;
+    result['q'] = BLACK_QUEENS;
+    result['k'] = BLACK_KING;
+    result['0'] = NO_PIECES;
     return result;
 }
 
@@ -126,10 +131,9 @@ std::vector<BitMove> Chess::generateMoves()
 {
     std::vector<BitMove> result;
     result.reserve(32);
-
     std::string state = stateString();
 
-    for (int i = 0; i < NUM_BITBOARDS; i++)
+    for (int i = 0; i < E_NUM_BITBOARDS; i++)
         _bitboards[i] = 0;
 
     for (int i = 0; i < 64; i++)
@@ -137,7 +141,7 @@ std::vector<BitMove> Chess::generateMoves()
         char c = state[i];
         uint64_t oneBit = 1ULL << i;
 
-        _bitboards[_bitboardLookup[c]] |= oneBit;
+        _bitboards[_pieceNotationToBitboardLookup[c]] |= oneBit;
         if (c != '0')
         {
             _bitboards[ALL_PIECES] |= oneBit;
@@ -153,7 +157,7 @@ void Chess::generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoar
 {
     knightBoard.forEachBit([&](int fromIndex)
     {
-        Bitboard moveToBoard = _knightMoveBitboardArray[fromIndex].getData() & allPiecesBoard.getData();
+        Bitboard moveToBoard = _knightMovesBitboardArray[fromIndex].getData() & allPiecesBoard.getData();
         moveToBoard.forEachBit([&](int toIndex)
             {moves.emplace_back(fromIndex, toIndex, Knight);});
     });

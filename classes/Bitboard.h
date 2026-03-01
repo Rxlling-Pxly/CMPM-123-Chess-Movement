@@ -18,15 +18,17 @@ enum ChessPiece
 
 class Bitboard {
   public:
-    // Constructors
     Bitboard() : _data(0) {}
     Bitboard(uint64_t data) : _data(data) {}
 
-    // Getters and Setters
     uint64_t getData() const { return _data; }
     void setData(uint64_t data) { _data = data; }
 
-    // Method to loop through each bit in the element and perform an operation on it.
+    Bitboard &operator|=(const uint64_t other) {
+        _data |= other;
+        return *this;
+    }
+
     template <typename Func>
     void forEachBit(Func func) const {
         if (_data != 0) {
@@ -37,11 +39,6 @@ class Bitboard {
                 tempData &= tempData - 1;
             }
         }
-    }
-
-    Bitboard& operator|=(const uint64_t other) {
-        _data |= other;
-        return *this;
     }
 
     void printBitboard() {
@@ -64,7 +61,7 @@ class Bitboard {
     }
 
 private:
-    uint64_t    _data;
+    uint64_t _data;
 
     inline int bitScanForward(uint64_t bb) const {
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -75,22 +72,17 @@ private:
         return __builtin_ffsll(bb) - 1;
 #endif
     };
-
 };
 
 struct BitMove {
     uint8_t from;
     uint8_t to;
     uint8_t piece;
-    
-    BitMove(int from, int to, ChessPiece piece)
-        : from(from), to(to), piece(piece) { }
+
+    BitMove() : from(0), to(0), piece(None) {}
+    BitMove(int from, int to, ChessPiece piece) : from(from), to(to), piece(piece) {}
         
-    BitMove() : from(0), to(0), piece(None) { }
-    
     bool operator==(const BitMove& other) const {
-        return from == other.from && 
-               to == other.to && 
-               piece == other.piece;
+        return from == other.from && to == other.to && piece == other.piece;
     }
 };
