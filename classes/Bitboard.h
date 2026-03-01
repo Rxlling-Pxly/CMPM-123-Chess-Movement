@@ -16,13 +16,11 @@ enum ChessPiece
     King
 };
 
-class BitboardElement {
+class Bitboard {
   public:
     // Constructors
-    BitboardElement()
-        : _data(0) { }
-    BitboardElement(uint64_t data)
-        : _data(data) { }
+    Bitboard() : _data(0) {}
+    Bitboard(uint64_t data) : _data(data) {}
 
     // Getters and Setters
     uint64_t getData() const { return _data; }
@@ -41,7 +39,7 @@ class BitboardElement {
         }
     }
 
-    BitboardElement& operator|=(const uint64_t other) {
+    Bitboard& operator|=(const uint64_t other) {
         _data |= other;
         return *this;
     }

@@ -1,20 +1,10 @@
 #pragma once
 
+#include "Bitboard.h"
 #include "Game.h"
 #include "Grid.h"
 
-constexpr int pieceSize = 80;
-
-enum ChessPiece
-{
-    None,
-    Pawn,
-    Knight,
-    Bishop,
-    Rook,
-    Queen,
-    King
-};
+constexpr int PIECE_SIZE = 80;
 
 enum Bitboards
 {
@@ -61,8 +51,12 @@ public:
 private:
     Grid *_grid;
 
-    Bit* PieceForPlayer(const int playerNumber, ChessPiece piece);
+    Bitboard _knightMoveBitboardArray[64];
+
+    void generateKnightMoveBitboardArray();
+
+    Bit* pieceForPlayer(const int playerNumber, ChessPiece piece);
     Player* ownerAt(int x, int y) const;
-    void FENtoBoard(const std::string& fen);
+    void fenToBoard(const std::string& fen);
     char pieceNotation(int x, int y) const;
 };

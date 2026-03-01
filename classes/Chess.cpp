@@ -8,10 +8,36 @@ Chess::Chess()
     setNumberOfPlayers(2);
 
     _grid = new Grid(8, 8);
-    _grid->initializeChessSquares(pieceSize, "boardsquare.png");
+    _grid->initializeChessSquares(PIECE_SIZE, "boardsquare.png");
 
-
+    generateKnightMoveBitboardArray();
 }
+void Chess::generateKnightMoveBitboardArray()
+{
+    struct Offset { int dx; int dy; };
+    static constexpr Offset offsets[] = { {1,2}, {2,1}, {2,-1}, {1,-2}, {-1,-2}, {-2,-1}, {-2,1}, {-1,2} };
+
+    for (int fromIndex = 0; fromIndex < 64; fromIndex++)
+    {
+        Bitboard bitboard;
+        int fromRank = fromIndex / 8;
+        int fromFile = fromIndex % 8;
+
+        for (auto [df, dr] : offsets)
+        {
+            int toRank = fromRank + dr;
+            int toFile = fromFile + df;
+
+            if (toRank < 0 || toRank > 7 || toFile < 0 || toFile > 7) continue;
+
+            int toIndex = toRank * 8 + toFile;
+            bitboard |= 1ULL << toIndex;
+        }
+
+        _knightMoveBitboardArray[fromIndex] = bitboard;
+    }
+}
+
 Chess::~Chess()
 {
     delete _grid;
@@ -19,7 +45,7 @@ Chess::~Chess()
 
 void Chess::setUpBoard()
 {
-    FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+    fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
     startGame();
 }
@@ -48,7 +74,7 @@ void Chess::setStateString(const std::string &s)
         int index = y * 8 + x;
         char playerNumber = s[index] - '0';
         if (playerNumber)
-            square->setBit(PieceForPlayer(playerNumber - 1, Pawn));
+            square->setBit(pieceForPlayer(playerNumber - 1, Pawn));
         else
             square->setBit(nullptr);
     });
@@ -66,7 +92,7 @@ char Chess::pieceNotation(int x, int y) const
     return notation;
 }
 
-Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
+Bit* Chess::pieceForPlayer(const int playerNumber, ChessPiece piece)
 {
     const char* pieces[] = { "pawn.png", "knight.png", "bishop.png", "rook.png", "queen.png", "king.png" };
 
@@ -76,12 +102,12 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
     std::string spritePath = std::string("") + (playerNumber == 0 ? "w_" : "b_") + pieceName;
     bit->LoadTextureFromFile(spritePath.c_str());
     bit->setOwner(getPlayerAt(playerNumber));
-    bit->setSize(pieceSize, pieceSize);
+    bit->setSize(PIECE_SIZE, PIECE_SIZE);
 
     return bit;
 }
 
-void Chess::FENtoBoard(const std::string& fen) {
+void Chess::fenToBoard(const std::string& fen) {
     int rank = 7; // row/y
     int file = 0; // column/x
     for (char c : fen)
@@ -113,7 +139,7 @@ void Chess::FENtoBoard(const std::string& fen) {
 
             int gameTag = isupper(c) ? piece : piece + 128;
 
-            Bit *bit = PieceForPlayer(playerNumber, piece);
+            Bit *bit = pieceForPlayer(playerNumber, piece);
             bit->setGameTag(gameTag);
             ChessSquare *square = _grid->getSquare(file, rank);
             bit->setParent(square);
