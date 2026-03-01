@@ -68,7 +68,7 @@ private:
     Bit *pieceForPlayer(const int playerNumber, ChessPiece piece);
 
     std::vector<BitMove> generateMoves();
-    void generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoard, Bitboard allPiecesBoard);
+    void generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoard);
 
     char pieceNotation(int x, int y) const;
 

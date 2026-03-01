@@ -149,17 +149,18 @@ std::vector<BitMove> Chess::generateMoves()
         }
     }
 
-    generateKnightMoves(result, _bitboards[_currentPlayer == WHITE ? WHITE_KNIGHTS : BLACK_KNIGHTS], _bitboards[NO_PIECES]);
+    generateKnightMoves(result, _bitboards[_currentPlayer == WHITE ? WHITE_KNIGHTS : BLACK_KNIGHTS]);
 
     return result;
 }
-void Chess::generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoard, Bitboard allPiecesBoard)
+void Chess::generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoard)
 {
     knightBoard.forEachBit([&](int fromIndex)
     {
-        Bitboard moveToBoard = _knightMovesBitboardArray[fromIndex].getData() & allPiecesBoard.getData();
-        moveToBoard.forEachBit([&](int toIndex)
-            {moves.emplace_back(fromIndex, toIndex, Knight);});
+        _knightMovesBitboardArray[fromIndex].forEachBit([&](int toIndex)
+        {
+            moves.emplace_back(fromIndex, toIndex, Knight);
+        });
     });
 }
 
