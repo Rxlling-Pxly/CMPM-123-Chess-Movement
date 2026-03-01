@@ -149,13 +149,67 @@ std::vector<BitMove> Chess::generateMoves()
         }
     }
 
-    generateKnightMoves(result, _bitboards[_currentPlayer == WHITE ? WHITE_KNIGHTS : BLACK_KNIGHTS]);
+    int indexOffset = _currentPlayer == WHITE ? WHITE_PAWNS : BLACK_PAWNS;
+    generatePawnMoves(result, _bitboards[WHITE_PAWNS + indexOffset], _bitboards[NO_PIECES], _bitboards[_currentPlayer == WHITE ? BLACK_PIECES : WHITE_PIECES]);
+    generateKnightMoves(result, _bitboards[WHITE_KNIGHTS + indexOffset]);
 
     return result;
 }
-void Chess::generateKnightMoves(std::vector<BitMove> &moves, Bitboard knightBoard)
+void Chess::generatePawnMoves(std::vector<BitMove> &moves, const Bitboard pawns, const Bitboard noPieces, const Bitboard opponentPieces)
 {
-    knightBoard.forEachBit([&](int fromIndex)
+    if (pawns.getData() == 0) return;
+
+    static constexpr uint64_t RANK3(0x0000000000FF0000ULL);
+    static constexpr uint64_t RANK6(0x0000FF0000000000ULL);
+    static constexpr uint64_t NOT_A_FILE(0xFEFEFEFEFEFEFEFEULL);
+    static constexpr uint64_t NOT_H_FILE(0x7F7F7F7F7F7F7F7FULL);
+
+    const bool isWhite = _currentPlayer == WHITE;
+    const uint64_t pawnsData = pawns.getData();
+    const uint64_t noPiecesData = noPieces.getData();
+    const uint64_t opponentPiecesData = opponentPieces.getData();
+
+    Bitboard singleMoves = isWhite
+        ? (pawnsData << 8) & noPiecesData
+        : (pawnsData >> 8) & noPiecesData;
+
+    // must use singleMoves and forward shift once more instead of pawnsData and double forward shift
+    // because we need to check each forward rank that there are no pieces in the way
+    Bitboard doubleMoves = isWhite
+        ? ((singleMoves.getData() & RANK3) << 8) & noPiecesData
+        : ((singleMoves.getData() & RANK6) >> 8) & noPiecesData;
+
+    Bitboard leftCaptures = isWhite
+        ? ((pawnsData & NOT_A_FILE) << 7) & opponentPiecesData
+        : ((pawnsData & NOT_A_FILE) >> 9) & opponentPiecesData;
+
+    Bitboard rightCaptures = isWhite
+        ? ((pawnsData & NOT_H_FILE) << 9) & opponentPiecesData
+        : ((pawnsData & NOT_H_FILE) >> 7) & opponentPiecesData;
+
+    const int forwardShift = isWhite ? 8 : -8;
+    const int doubleForwardShift = isWhite ? 16 : -16;
+    const int leftCaptureShift = isWhite ? 7 : -9;
+    const int rightCaptureShift = isWhite ? 9 : -7;
+
+    addPawnBitboardMovesToList(moves, singleMoves, forwardShift);
+    addPawnBitboardMovesToList(moves, doubleMoves, doubleForwardShift);
+    addPawnBitboardMovesToList(moves, leftCaptures, leftCaptureShift);
+    addPawnBitboardMovesToList(moves, rightCaptures, rightCaptureShift);
+}
+void Chess::addPawnBitboardMovesToList(std::vector<BitMove> &moves, const Bitboard bitboard, const int shift)
+{
+    if (bitboard.getData() == 0) return;
+
+    bitboard.forEachBit([&](int toIndex)
+    {
+        int fromIndex = toIndex - shift;
+        moves.emplace_back(fromIndex, toIndex, Pawn);
+    });
+}
+void Chess::generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knights)
+{
+    knights.forEachBit([&](int fromIndex)
     {
         _knightMovesBitboardArray[fromIndex].forEachBit([&](int toIndex)
         {
