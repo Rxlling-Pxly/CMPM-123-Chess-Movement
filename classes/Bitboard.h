@@ -7,7 +7,7 @@
 
 enum ChessPiece
 {
-    NoPiece,
+    None,
     Pawn,
     Knight,
     Bishop,
@@ -88,7 +88,7 @@ struct BitMove {
     BitMove(int from, int to, ChessPiece piece)
         : from(from), to(to), piece(piece) { }
         
-    BitMove() : from(0), to(0), piece(NoPiece) { }
+    BitMove() : from(0), to(0), piece(None) { }
     
     bool operator==(const BitMove& other) const {
         return from == other.from && 

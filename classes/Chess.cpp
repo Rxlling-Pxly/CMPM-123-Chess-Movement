@@ -5,12 +5,53 @@
 
 Chess::Chess()
 {
-    _grid = new Grid(8, 8);
-}
+    setNumberOfPlayers(2);
 
+    _grid = new Grid(8, 8);
+    _grid->initializeChessSquares(pieceSize, "boardsquare.png");
+
+
+}
 Chess::~Chess()
 {
     delete _grid;
+}
+
+void Chess::setUpBoard()
+{
+    FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+
+    startGame();
+}
+void Chess::stopGame()
+{
+    _grid->forEachSquare([](ChessSquare* square, int x, int y)
+        { square->destroyBit(); });
+}
+
+std::string Chess::initialStateString()
+{
+    return stateString();
+}
+std::string Chess::stateString()
+{
+    std::string s;
+    s.reserve(64);
+    _grid->forEachSquare([&](ChessSquare* square, int x, int y)
+        { s += pieceNotation( x, y ); });
+    return s;
+}
+void Chess::setStateString(const std::string &s)
+{
+    _grid->forEachSquare([&](ChessSquare* square, int x, int y)
+    {
+        int index = y * 8 + x;
+        char playerNumber = s[index] - '0';
+        if (playerNumber)
+            square->setBit(PieceForPlayer(playerNumber - 1, Pawn));
+        else
+            square->setBit(nullptr);
+    });
 }
 
 char Chess::pieceNotation(int x, int y) const
@@ -38,16 +79,6 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
     bit->setSize(pieceSize, pieceSize);
 
     return bit;
-}
-
-void Chess::setUpBoard()
-{
-    setNumberOfPlayers(2);
-
-    _grid->initializeChessSquares(pieceSize, "boardsquare.png");
-    FENtoBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-
-    startGame();
 }
 
 void Chess::FENtoBoard(const std::string& fen) {
@@ -94,11 +125,6 @@ void Chess::FENtoBoard(const std::string& fen) {
     }
 }
 
-bool Chess::actionForEmptyHolder(BitHolder &holder)
-{
-    return false;
-}
-
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
     // need to implement friendly/unfriendly in bit so for now this hack
@@ -111,13 +137,6 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 bool Chess::canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst)
 {
     return true;
-}
-
-void Chess::stopGame()
-{
-    _grid->forEachSquare([](ChessSquare* square, int x, int y) {
-        square->destroyBit();
-    });
 }
 
 Player* Chess::ownerAt(int x, int y) const
@@ -141,32 +160,4 @@ Player* Chess::checkForWinner()
 bool Chess::checkForDraw()
 {
     return false;
-}
-
-std::string Chess::initialStateString()
-{
-    return stateString();
-}
-
-std::string Chess::stateString()
-{
-    std::string s;
-    s.reserve(64);
-    _grid->forEachSquare([&](ChessSquare* square, int x, int y) {
-            s += pieceNotation( x, y );
-        }
-    );
-    return s;}
-
-void Chess::setStateString(const std::string &s)
-{
-    _grid->forEachSquare([&](ChessSquare* square, int x, int y) {
-        int index = y * 8 + x;
-        char playerNumber = s[index] - '0';
-        if (playerNumber) {
-            square->setBit(PieceForPlayer(playerNumber - 1, Pawn));
-        } else {
-            square->setBit(nullptr);
-        }
-    });
 }
