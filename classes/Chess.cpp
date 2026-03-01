@@ -176,8 +176,8 @@ std::vector<BitMove> Chess::generateMoves()
 
     int offset = _currentPlayer == WHITE ? WHITE_PAWNS : BLACK_PAWNS;
     generatePawnMoves(result, _bitboards[WHITE_PAWNS + offset], _bitboards[NO_PIECES], _bitboards[_currentPlayer == WHITE ? BLACK_PIECES : WHITE_PIECES]);
-    generateKnightMoves(result, _bitboards[WHITE_KNIGHTS + offset]);
-    generateKingMoves(result, _bitboards[WHITE_KING + offset]);
+    generateKnightMoves(result, _bitboards[WHITE_KNIGHTS + offset], _bitboards[WHITE_PIECES + offset]);
+    generateKingMoves(result, _bitboards[WHITE_KING + offset], _bitboards[WHITE_PIECES + offset]);
 
     return result;
 }
@@ -233,24 +233,22 @@ void Chess::addPawnBitboardMovesToList(std::vector<BitMove> &moves, const Bitboa
         moves.emplace_back(fromIndex, toIndex, Pawn);
     });
 }
-void Chess::generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knights)
+void Chess::generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knights, const Bitboard playerPieces)
 {
     knights.forEachBit([&](int fromIndex)
     {
-        _knightMovesBitboardArray[fromIndex].forEachBit([&](int toIndex)
-        {
-            moves.emplace_back(fromIndex, toIndex, Knight);
-        });
+        Bitboard validMoves = _knightMovesBitboardArray[fromIndex].getData() & ~playerPieces.getData();
+        validMoves.forEachBit([&](int toIndex)
+            { moves.emplace_back(fromIndex, toIndex, Knight); });
     });
 }
-void Chess::generateKingMoves(std::vector<BitMove> &moves, const Bitboard king)
+void Chess::generateKingMoves(std::vector<BitMove> &moves, const Bitboard king, const Bitboard playerPieces)
 {
     king.forEachBit([&](int fromIndex)
     {
-        _kingMovesBitboardArray[fromIndex].forEachBit([&](int toIndex)
-        {
-            moves.emplace_back(fromIndex, toIndex, King);
-        });
+        Bitboard validMoves = _kingMovesBitboardArray[fromIndex].getData() & ~playerPieces.getData();
+        validMoves.forEachBit([&](int toIndex)
+            { moves.emplace_back(fromIndex, toIndex, King); });
     });
 }
 

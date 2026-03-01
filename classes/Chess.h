@@ -72,8 +72,8 @@ private:
     std::vector<BitMove> generateMoves();
     void generatePawnMoves(std::vector<BitMove> &moves, const Bitboard pawns, const Bitboard noPieces, const Bitboard opponentPieces);
     void addPawnBitboardMovesToList(std::vector<BitMove> &moves, const Bitboard bitboard, const int shift);
-    void generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knights);
-    void generateKingMoves(std::vector<BitMove> &moves, const Bitboard king);
+    void generateKnightMoves(std::vector<BitMove> &moves, const Bitboard knights, const Bitboard playerPieces);
+    void generateKingMoves(std::vector<BitMove> &moves, const Bitboard king, const Bitboard playerPieces);
 
     char pieceNotation(int x, int y) const;
 
